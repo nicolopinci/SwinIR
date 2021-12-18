@@ -82,9 +82,9 @@ def main():
         output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
         
         if(output.ndim == 3):
-            output = scipy.ndimage.zoom(output, zoom = [0.25, 0.25, 1], order = 5)
+            output = scipy.ndimage.zoom(output, zoom = [0.25, 0.25, 1], order = 1)
         else:
-            output = scipy.ndimage.zoom(output, zoom = 0.25, order = 5)
+            output = scipy.ndimage.zoom(output, zoom = 0.25, order = 1)
         
         cv2.imwrite(f'{save_dir}/{imgname}_SwinIR.png', output)
 

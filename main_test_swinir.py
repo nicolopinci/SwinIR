@@ -60,87 +60,56 @@ def main():
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
     for idx, path in enumerate(sorted(glob.glob(os.path.join(folder, '*')))):
+        # see if image already considered
+        done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
+
         # read image
         imgname, img_lq, img_gt = get_image_pair(args, path)  # image to HWC-BGR, float32
         
-        cv2_img = cv2.imread(os.path.join(folder, imgname + ".jpg"), 0)
-        
-        img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
-        img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
+        if(imgname not in done_images):
+            cv2_img = cv2.imread(os.path.join(folder, imgname + ".jpg"), 0)
 
-        blur_level_orig = cv2.Laplacian(cv2_img, cv2.CV_64F).var()  
-        
-        if(blur_level_orig < 400): # blurred image -> apply super-resolution
-            print("Blurred image: application of super-resolution")
-            # inference
-            with torch.no_grad():
-                # pad input image to be a multiple of window_size
-                _, _, h_old, w_old = img_lq.size()
-                h_pad = (h_old // window_size + 1) * window_size - h_old
-                w_pad = (w_old // window_size + 1) * window_size - w_old
-                img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[:, :, :h_old + h_pad, :]
-                img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[:, :, :, :w_old + w_pad]
-                output = test(img_lq, model, args, window_size)
-                output = output[..., :h_old * args.scale, :w_old * args.scale]
+            img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
+            img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
 
-            # save image
-            output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
-            if output.ndim == 3:
-                output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
-            output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
+            blur_level_orig = cv2.Laplacian(cv2_img, cv2.CV_64F).var()  
+
+            if(blur_level_orig < 400): # blurred image -> apply super-resolution
+                print("Blurred image: application of super-resolution")
+                # inference
+                with torch.no_grad():
+                    # pad input image to be a multiple of window_size
+                    _, _, h_old, w_old = img_lq.size()
+                    h_pad = (h_old // window_size + 1) * window_size - h_old
+                    w_pad = (w_old // window_size + 1) * window_size - w_old
+                    img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[:, :, :h_old + h_pad, :]
+                    img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[:, :, :, :w_old + w_pad]
+                    output = test(img_lq, model, args, window_size)
+                    output = output[..., :h_old * args.scale, :w_old * args.scale]
+
+                # save image
+                output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
+                if output.ndim == 3:
+                    output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
+                output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
 
 
-            scale_percent = 25
-            width = int(output.shape[1] * scale_percent / 100)
-            height = int(output.shape[0] * scale_percent / 100)
-            
-            dim = (width, height)
-            print(output.shape)
-            print("\n")
-            output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
+                scale_percent = 25
+                width = int(output.shape[1] * scale_percent / 100)
+                height = int(output.shape[0] * scale_percent / 100)
 
-            cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)
+                dim = (width, height)
+                print(output.shape)
+                print("\n")
+                output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
+
+                cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)
+            else:
+                print("Non-blurred image")
+                shutil.copyfile(os.path.join(folder, imgname + ".jpg"), os.path.join(save_dir, imgname + ".jpg"))
+
         else:
-            print("Non-blurred image")
-            shutil.copyfile(os.path.join(folder, imgname + ".jpg"), os.path.join(save_dir, imgname + ".jpg"))
-
-        # evaluate psnr/ssim/psnr_b
-        if img_gt is not None:
-            img_gt = (img_gt * 255.0).round().astype(np.uint8)  # float32 to uint8
-            img_gt = img_gt[:h_old * args.scale, :w_old * args.scale, ...]  # crop gt
-            img_gt = np.squeeze(img_gt)
-
-            psnr = util.calculate_psnr(output, img_gt, crop_border=border)
-            ssim = util.calculate_ssim(output, img_gt, crop_border=border)
-            test_results['psnr'].append(psnr)
-            test_results['ssim'].append(ssim)
-            if img_gt.ndim == 3:  # RGB image
-                psnr_y = util.calculate_psnr(output, img_gt, crop_border=border, test_y_channel=True)
-                ssim_y = util.calculate_ssim(output, img_gt, crop_border=border, test_y_channel=True)
-                test_results['psnr_y'].append(psnr_y)
-                test_results['ssim_y'].append(ssim_y)
-            if args.task in ['jpeg_car']:
-                psnr_b = util.calculate_psnrb(output, img_gt, crop_border=border, test_y_channel=True)
-                test_results['psnr_b'].append(psnr_b)
-            print('Testing {:d} {:20s} - PSNR: {:.2f} dB; SSIM: {:.4f}; '
-                  'PSNR_Y: {:.2f} dB; SSIM_Y: {:.4f}; '
-                  'PSNR_B: {:.2f} dB.'.
-                  format(idx, imgname, psnr, ssim, psnr_y, ssim_y, psnr_b))
-        else:
-            print('Testing {:d} {:20s}'.format(idx, imgname))
-
-    # summarize psnr/ssim
-    if img_gt is not None:
-        ave_psnr = sum(test_results['psnr']) / len(test_results['psnr'])
-        ave_ssim = sum(test_results['ssim']) / len(test_results['ssim'])
-        print('\n{} \n-- Average PSNR/SSIM(RGB): {:.2f} dB; {:.4f}'.format(save_dir, ave_psnr, ave_ssim))
-        if img_gt.ndim == 3:
-            ave_psnr_y = sum(test_results['psnr_y']) / len(test_results['psnr_y'])
-            ave_ssim_y = sum(test_results['ssim_y']) / len(test_results['ssim_y'])
-            print('-- Average PSNR_Y/SSIM_Y: {:.2f} dB; {:.4f}'.format(ave_psnr_y, ave_ssim_y))
-        if args.task in ['jpeg_car']:
-            ave_psnr_b = sum(test_results['psnr_b']) / len(test_results['psnr_b'])
-            print('-- Average PSNR_B: {:.2f} dB'.format(ave_psnr_b))
+            print("The image already exists!")
 
 
 def define_model(args):

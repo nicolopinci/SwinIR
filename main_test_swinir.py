@@ -6,6 +6,7 @@ from collections import OrderedDict
 import os
 import torch
 import requests
+from scipy import ndimage, misc
 
 from models.network_swinir import SwinIR as net
 from utils import util_calculate_psnr_ssim as util
@@ -78,6 +79,9 @@ def main():
         if output.ndim == 3:
             output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
         output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
+        
+        output = scipy.ndimage.zoom(output, 0.25)
+        
         cv2.imwrite(f'{save_dir}/{imgname}_SwinIR.png', output)
 
         # evaluate psnr/ssim/psnr_b

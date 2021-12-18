@@ -81,7 +81,10 @@ def main():
             output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
         output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
         
-        output = scipy.ndimage.zoom(output, 0.25)
+        if(output.ndim == 3):
+            output = scipy.ndimage.zoom(output, zoom = [0.25, 0.25, 1], order = 5)
+        else:
+            output = scipy.ndimage.zoom(output, zoom = 0.25, order = 5)
         
         cv2.imwrite(f'{save_dir}/{imgname}_SwinIR.png', output)
 

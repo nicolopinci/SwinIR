@@ -87,7 +87,7 @@ def main():
         height = int(output.shape[0] * scale_percent / 100)
         dim = (width, height)
         
-        output = cv2.resize(output, dim, interpolation = cv2.INTER_LANCZOS4)
+        output = cv2.resize(output, dim, interpolation = cv2.INTER_NEAREST)
         
         cv2.imwrite(f'{save_dir}/{imgname}.png', output)
 

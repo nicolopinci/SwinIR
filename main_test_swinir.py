@@ -95,12 +95,13 @@ def main():
             
             dim = (width, height)
             print(output.shape)
+            print("\n")
             output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
 
             cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)
         else:
             print("Non-blurred image")
-            cv2.imwrite(f'{save_dir}/{imgname}.jpg', cv2_img)
+            shutil.copyfile(os.path.join(folder, imgname + ".jpg"), os.path.join(save_dir, imgname + ".jpg"))
 
         # evaluate psnr/ssim/psnr_b
         if img_gt is not None:

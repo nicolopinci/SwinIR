@@ -70,6 +70,7 @@ def main():
         blur_level_orig = cv2.Laplacian(cv2_img, cv2.CV_64F).var()  
         
         if(blur_level_orig < 400): # blurred image -> apply super-resolution
+            print("Blurred image: application of super-resolution")
             # inference
             with torch.no_grad():
                 # pad input image to be a multiple of window_size
@@ -97,6 +98,7 @@ def main():
 
             cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)
         else:
+            print("Non-blurred image")
             cv2.imwrite(f'{save_dir}/{imgname}.jpg', cv2_img)
 
         # evaluate psnr/ssim/psnr_b

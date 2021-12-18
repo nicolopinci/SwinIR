@@ -92,7 +92,8 @@ def main():
             scale_percent = 25
             width = int(output.shape[1] * scale_percent / 100)
             height = int(output.shape[0] * scale_percent / 100)
-            dim = (width, height)
+            depth = int(output.shape[2])
+            dim = (width, height, depth)
 
             output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
 

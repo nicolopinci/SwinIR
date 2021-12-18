@@ -83,8 +83,8 @@ def main():
         
        
         scale_percent = 25
-        width = int(img.shape[1] * scale_percent / 100)
-        height = int(img.shape[0] * scale_percent / 100)
+        width = int(output.shape[1] * scale_percent / 100)
+        height = int(output.shape[0] * scale_percent / 100)
         dim = (width, height)
         
         output = cv2.resize(output, dim, interpolation = cv2.INTER_LANCZOS4)

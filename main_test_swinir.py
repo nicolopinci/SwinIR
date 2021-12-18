@@ -8,6 +8,7 @@ import torch
 import requests
 import scipy
 from scipy import ndimage, misc
+import shutil
 
 from models.network_swinir import SwinIR as net
 from utils import util_calculate_psnr_ssim as util

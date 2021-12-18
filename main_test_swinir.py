@@ -11,6 +11,7 @@ from scipy import ndimage, misc
 import shutil
 from os import listdir
 from os.path import isfile, join
+import random
 
 from models.network_swinir import SwinIR as net
 from utils import util_calculate_psnr_ssim as util
@@ -61,7 +62,7 @@ def main():
     test_results['psnr_b'] = []
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
-    for idx, path in enumerate(sorted(glob.glob(os.path.join(folder, '*')))):
+    for idx, path in enumerate(random.shuffle(glob.glob(os.path.join(folder, '*')))):
         # see if image already considered
         done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
 

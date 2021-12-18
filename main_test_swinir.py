@@ -64,32 +64,37 @@ def main():
         img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
         img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
 
-        # inference
-        with torch.no_grad():
-            # pad input image to be a multiple of window_size
-            _, _, h_old, w_old = img_lq.size()
-            h_pad = (h_old // window_size + 1) * window_size - h_old
-            w_pad = (w_old // window_size + 1) * window_size - w_old
-            img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[:, :, :h_old + h_pad, :]
-            img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[:, :, :, :w_old + w_pad]
-            output = test(img_lq, model, args, window_size)
-            output = output[..., :h_old * args.scale, :w_old * args.scale]
+        blur_level_orig = cv2.Laplacian(img_lq, cv2.CV_64F).var()  
+        
+        if(blur_level_orig < 400): # blurred image -> apply super-resolution
+            # inference
+            with torch.no_grad():
+                # pad input image to be a multiple of window_size
+                _, _, h_old, w_old = img_lq.size()
+                h_pad = (h_old // window_size + 1) * window_size - h_old
+                w_pad = (w_old // window_size + 1) * window_size - w_old
+                img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[:, :, :h_old + h_pad, :]
+                img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[:, :, :, :w_old + w_pad]
+                output = test(img_lq, model, args, window_size)
+                output = output[..., :h_old * args.scale, :w_old * args.scale]
 
-        # save image
-        output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
-        if output.ndim == 3:
-            output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
-        output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
-        
-       
-        scale_percent = 25
-        width = int(output.shape[1] * scale_percent / 100)
-        height = int(output.shape[0] * scale_percent / 100)
-        dim = (width, height)
-        
-        output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
-        
-        cv2.imwrite(f'{save_dir}/{imgname}.png', output)
+            # save image
+            output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
+            if output.ndim == 3:
+                output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
+            output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
+
+
+            scale_percent = 25
+            width = int(output.shape[1] * scale_percent / 100)
+            height = int(output.shape[0] * scale_percent / 100)
+            dim = (width, height)
+
+            output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
+
+            cv2.imwrite(f'{save_dir}/{imgname}.png', output)
+        else:
+            cv2.imwrite(f'{save_dir}/{imgname}.png', img_lq)
 
         # evaluate psnr/ssim/psnr_b
         if img_gt is not None:

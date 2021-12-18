@@ -6,6 +6,7 @@ from collections import OrderedDict
 import os
 import torch
 import requests
+import scipy
 from scipy import ndimage, misc
 
 from models.network_swinir import SwinIR as net

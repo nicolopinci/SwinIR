@@ -89,6 +89,7 @@ def main():
         
         output = cv2.resize(output, dim, interpolation = cv2.INTER_LANCZOS4)
         
+        cv2.imwrite(f'{save_dir}/{imgname}.png', output)
 
         # evaluate psnr/ssim/psnr_b
         if img_gt is not None:

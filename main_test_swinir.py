@@ -81,12 +81,14 @@ def main():
             output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
         output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
         
-        if(output.ndim == 3):
-            output = scipy.ndimage.zoom(output, zoom = [0.25, 0.25, 1], order = 1)
-        else:
-            output = scipy.ndimage.zoom(output, zoom = 0.25, order = 1)
+       
+        scale_percent = 25
+        width = int(img.shape[1] * scale_percent / 100)
+        height = int(img.shape[0] * scale_percent / 100)
+        dim = (width, height)
         
-        cv2.imwrite(f'{save_dir}/{imgname}_SwinIR.png', output)
+        output = cv2.resize(output, dim, interpolation = cv2.INTER_LANCZOS4)
+        
 
         # evaluate psnr/ssim/psnr_b
         if img_gt is not None:

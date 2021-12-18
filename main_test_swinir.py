@@ -61,8 +61,8 @@ def main():
     for idx, path in enumerate(sorted(glob.glob(os.path.join(folder, '*')))):
         # read image
         imgname, img_lq, img_gt = get_image_pair(args, path)  # image to HWC-BGR, float32
-        
-        cv2_img = cv2.imread(os.path.join(path, imgname), 0)
+        print(imgname)
+        cv2_img = cv2.imread(imgname, 0)
         
         img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
         img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB

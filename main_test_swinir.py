@@ -63,7 +63,7 @@ def main():
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
     files_list = glob.glob(os.path.join(folder, '*'))
-    for idx, path in enumerate(random.sample(files_list, len(files_list)):
+    for idx, path in enumerate(random.sample(files_list, len(files_list))):
         # see if image already considered
         done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
 

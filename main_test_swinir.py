@@ -92,9 +92,9 @@ def main():
             scale_percent = 25
             width = int(output.shape[1] * scale_percent / 100)
             height = int(output.shape[0] * scale_percent / 100)
-            depth = int(output.shape[2])
-            dim = (width, height, depth)
-
+            
+            dim = (width, height)
+            print(output.shape)
             output = cv2.resize(output, dim, interpolation = cv2.INTER_AREA)
 
             cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)

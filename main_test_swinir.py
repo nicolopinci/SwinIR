@@ -85,7 +85,7 @@ def main():
             blur_level_orig = cv2.Laplacian(cv2_img, cv2.CV_64F).var()  
 
             if(blur_level_orig < 400): # blurred image -> apply super-resolution
-                continue # there is no GPU, now!
+                #continue # there is no GPU, now!
                 print("Blurred image: application of super-resolution")
                 # inference
                 with torch.no_grad():
@@ -116,6 +116,7 @@ def main():
 
                 cv2.imwrite(f'{save_dir}/{imgname}.jpg', output)
             else:
+                continue
                 print("Non-blurred image")
                 shutil.copyfile(os.path.join(folder, imgname + ".jpg"), os.path.join(save_dir, imgname + ".jpg"))
 

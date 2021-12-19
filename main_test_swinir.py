@@ -63,6 +63,7 @@ def main():
     test_results['psnr_b'] = []
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
+    print(folder)
     files_list = glob.glob(os.path.join(folder, '*')) # files in original folder
     done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
     

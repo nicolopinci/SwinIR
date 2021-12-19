@@ -63,13 +63,13 @@ def main():
     test_results['psnr_b'] = []
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
-    print(folder)
     files_list = glob.glob(os.path.join(folder, '*')) # files in original folder
     done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
     
-    print(len(files_list))
-    files_list = [f for f in files_list if f not in done_images]
-    print(len(files_list))
+    print(files_list[:10])
+    print(done_images[:10])
+    files_list = [f for f in files_list if f.replace(".jpg","") not in done_images]
+    
     raise Exception
     
     for idx, path in tqdm.tqdm(random.sample(files_list, len(files_list))):

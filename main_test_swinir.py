@@ -69,7 +69,7 @@ def main():
     files_list = [f for f in files_list if f.replace(".jpg","").split("/")[-1] not in done_images]
 
     
-    for idx, path in tqdm.tqdm(random.sample(files_list, len(files_list))):
+    for idx, path in tqdm.tqdm(enumerate(random.sample(files_list, len(files_list)))):
         # see if image already considered
         #done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
 

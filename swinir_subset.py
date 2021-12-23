@@ -64,7 +64,6 @@ def main():
     psnr, ssim, psnr_y, ssim_y, psnr_b = 0, 0, 0, 0, 0
 
     files_list = glob.glob(os.path.join(folder, '*')) # files in original folder
-    print(files_list[0])
           
     tvt_f = open("/content/drive/MyDrive/DEVKitArtDL.zip (Unzipped Files)/DEVKitArt/tvt.txt", "r")
     files_list = [line.replace("\n","")+".jpg" for line in tvt_f]
@@ -72,7 +71,6 @@ def main():
     done_images = [f.replace(".jpg","") for f in listdir(save_dir) if isfile(join(save_dir, f))]
     
     files_list = [os.path.join(folder, f) for f in files_list if f.replace(".jpg","").split("/")[-1] not in done_images]
-    print(files_list)
     
     for idx, path in tqdm.tqdm(enumerate(random.sample(files_list, len(files_list)))):
         # see if image already considered

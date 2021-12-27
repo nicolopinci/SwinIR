@@ -77,7 +77,7 @@ def main():
     
     files_list = [os.path.join(folder, f) for f in files_list if f.replace(".jpg","").split("/")[-1] not in done_images]
     files_list.sort(key=lambda x: get_area(x))
-    files_list = files_list[int(len(files_list)/2):]
+    files_list = files_list[int(len(files_list)/4):]
     
     for idx, path in tqdm.tqdm(enumerate(files_list)):
         # see if image already considered

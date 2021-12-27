@@ -20,7 +20,7 @@ from utils import util_calculate_psnr_ssim as util
 
 def get_area(image_path):
   img = plt.imread(image_path)
-  height, width, _ = image.shape
+  height, width, _ = img.shape
   return height*width
 
 def main():
